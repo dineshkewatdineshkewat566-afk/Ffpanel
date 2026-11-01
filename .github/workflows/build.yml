@@ -1,6 +1,8 @@
 name: Build APK
 on:
   workflow_dispatch:
+permissions:
+  contents: write
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -16,7 +18,12 @@ jobs:
           gradle-version: 8.7
       - run: gradle assembleDebug
         working-directory: FFOB55Panel
-      - uses: actions/upload-artifact@v4
-        with:
-          name: FFOB55Panel-debug-apk
-          path: FFOB55Panel/app/build/outputs/apk/debug/app-debug.apk
+      - name: Publish APK to Releases
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "v${{ github.run_number }}" \
+            FFOB55Panel/app/build/outputs/apk/debug/app-debug.apk \
+            --title "APK build ${{ github.run_number }}" \
+            --notes "Debug APK" \
+            --repo "${{ github.repository }}"
